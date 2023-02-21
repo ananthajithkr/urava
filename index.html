@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Urava Bibliography Search</title>
+    <style>
+      table, th, td {
+        border: 1px solid black;
+        border-collapse: collapse;
+      }
+      th, td {
+        padding: 10px;
+        text-align: left;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="https://www.stet.in/">Back to Stet</a> 
+    <h1>Search Urava Bibliography</h1>
+    <h2>Under Development. Not intended for public release. Refresh the page for each new search.</h2>
+    <input type="text" id="search-term" placeholder="Enter search term" onkeypress="if(event.keyCode==13) searchZotero()">
+    <button onclick="searchZotero()">Search</button>
+    <table id="results">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Publication Date</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <script>
+      const GROUP_ID = '283088';
+      const RESULTS_PER_PAGE = 100;
+      let currentPage = 0;
+
+      function searchZotero() {
+        const searchTerm = document.getElementById('search-term').value;
+        const url = `https://api.zotero.org/groups/${GROUP_ID}/items?start=${currentPage}&limit=${RESULTS_PER_PAGE}&q=${searchTerm}`;
+        
+        fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            if (data.length === RESULTS_PER_PAGE) {
+              currentPage += RESULTS_PER_PAGE;
+              searchZotero();
+            }
+            displayResults(data)
+          })
+          .catch(error => console.error(error));
+      }
+
+      function displayResults(data) {
+        const tableBody = document.querySelector('#results tbody');
+        data.forEach(item => {
+          const row = document.createElement('tr');
+          const titleCell = document.createElement('td');
+          titleCell.textContent = item.data.title;
+          const authorCell = document.createElement('td');
+          authorCell.textContent = item.data.creators[0].lastName + ', ' + item.data.creators[0].firstName;
+          const dateCell = document.createElement('td');
+          dateCell.textContent = item.data.date;
+          row.appendChild(titleCell);
+          row.appendChild(authorCell);
+          row.appendChild(dateCell);
+          tableBody.appendChild(row);
+        });
+      }
+    </script>
+  </body>
+</html>
